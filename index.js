@@ -14,13 +14,25 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
   console.log('a user connected');
   
+  // Compter les utilisateurs connectés
+  const connectedUsers = io.engine.clientsCount;
+  console.log(`Users connected: ${connectedUsers}`);
+  
   socket.on('chat message', (msg) => {
     console.log('message: ' + msg);
-    io.emit('chat message', msg);
+    // Envoyer le message à tous les clients sauf l'expéditeur
+    socket.broadcast.emit('chat message', msg);
+  });
+  
+  socket.on('typing', (isTyping) => {
+    // Informer les autres utilisateurs que quelqu'un tape
+    socket.broadcast.emit('user typing', isTyping);
   });
   
   socket.on('disconnect', () => {
     console.log('user disconnected');
+    const remainingUsers = io.engine.clientsCount;
+    console.log(`Users remaining: ${remainingUsers}`);
   });
 });
 
